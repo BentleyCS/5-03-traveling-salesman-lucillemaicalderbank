@@ -1,97 +1,122 @@
 import math
 import random
-
 import pygame
 import itertools
 
-def getPathDistance(places : list):
-    #Given a list of x,y coordinates return the distance it would take to go to each coordinate
-    # in order and then back to the start.
+
+def getDistance(spot1, spot2):
+    # Given two coordinates in a plane return the distance between those two points.
+    return math.sqrt(
+        (spot1[0] - spot2[0]) ** 2 +
+        (spot1[1] - spot2[1]) ** 2
+    )
+
+
+def getPathDistance(places: list):
+    # Distance to visit all places in order and return to start
     dist = 0
+    for i in range(len(places) - 1):
+        dist += getDistance(places[i], places[i + 1])
+    dist += getDistance(places[-1], places[0])
     return dist
 
 
-def full_TSP(places : list):
-    #Check the distance of all possible different paths one could take over a set of x,y coordiantes
-    #and return the path with the shotest distance
-    #Print out the number of distance calculations you had to do.
+def generatePermutations(places: list):
+    return list(itertools.permutations(places))
 
-    bestRoute = []
+
+def full_TSP(places: list):
+    bestRoute = None
+    bestDist = float("inf")
     calculations = 0
+
+    for perm in generatePermutations(places):
+        calculations += 1
+        d = getPathDistance(list(perm))
+        if d < bestDist:
+            bestDist = d
+            bestRoute = list(perm)
 
     print(f"there were {calculations} calculations for full TSP")
     return bestRoute
 
-def hueristic_TSP(places : list):
-    #Perform a hueristic calculation for traveling salesman.
-    #For each node find the closest node to it and assume it is next node then repeat until you have your path.
-    #Return the path. andprint out the number of distance calculations you did.
 
-
+def hueristic_TSP(places: list):
     calculations = 0
+    path = [places.pop(0)]
+
+    while places:
+        current = path[-1]
+        closest = None
+        closestDist = float("inf")
+
+        for spot in places:
+            calculations += 1
+            d = getDistance(current, spot)
+            if d < closestDist:
+                closestDist = d
+                closest = spot
+
+        path.append(closest)
+        places.remove(closest)
 
     print(f"there were {calculations} calculations for hueristic TSP")
-    return []
-
-def generatePermutations(places : list):
-    # a function that given a list will return all possible permutations of the list.
-    return list(itertools.permutations(places))
-
-
-def getDistance(spot1, spot2):
-    #Given two coordinates in a plane return the distance between those two points.
-    dist = math.sqrt((spot1[0] - spot2[0]) ** 2 + (spot2[1] - spot2[1]) ** 2)
-    return dist
+    return path
 
 
 def generate_RandomCoordinates(n):
-    #Creates a list of random coordinates
     newPlaces = []
-    for i in range(n):
-        newPlaces.append([random.randint(10,790),random.randint(10,590)])
+    for _ in range(n):
+        newPlaces.append([random.randint(10, 790), random.randint(10, 590)])
     return newPlaces
 
-places = [[80,75],[100,520],[530,300],[280,200],[350,150],[700,120],[400,500]]
+
+places = [[80, 75], [100, 520], [530, 300], [280, 200],
+          [350, 150], [700, 120], [400, 500]]
 
 
 def DrawExample(places):
-    #Draws the TSP showcase to the screen.
     TSP = full_TSP(places.copy())
     Hueristic = hueristic_TSP(places.copy())
-    # Initialize Pygame
+
     pygame.init()
-    print(TSP)
-    print(Hueristic)
-    # Set up the game window
     screen = pygame.display.set_mode((800, 800))
-    # Game loop
+    pygame.display.set_caption("Traveling Salesman")
+
+    font = pygame.font.SysFont(None, 32)
+    text_rect = pygame.Rect(0, 0, 800, 50)
+    text_rect.center = (400, 760)
+
     running = True
-    pygame.font.init()
-    font = pygame.font.SysFont(None, 48)
-    text_surface = font.render('Hello, Pygame!', True, (0, 0, 0))
-    text_surface.set_colorkey((0,0,0))
-    text_rect = text_surface.get_rect()
-    text_rect.center = (300, 700)  # Center the text on the screen
-    # Arguments: text string, antialias boolean (True for smooth edges), text color, optional background color
-    text_surface = font.render('Hello, Pygame!', True, (255, 255, 255))  # White text
     while running:
-        screen.fill((255,255,255))
-        for i in range(len(TSP)-1):
-            pygame.draw.line(screen,(255,0,0),(TSP[i][0],TSP[i][1]),(TSP[i+1][0],TSP[i+1][1]),width = 8)
-        if len(TSP) >=1:pygame.draw.line(screen, (255, 0, 0), (TSP[0][0], TSP[0][1]), (TSP[-1][0], TSP[-1][1]),width =8)
+        screen.fill((255, 255, 255))
+
+        # Full TSP (red)
+        for i in range(len(TSP) - 1):
+            pygame.draw.line(screen, (255, 0, 0), TSP[i], TSP[i + 1], 8)
+        if TSP:
+            pygame.draw.line(screen, (255, 0, 0), TSP[0], TSP[-1], 8)
+
+        # Heuristic (blue)
         for i in range(len(Hueristic) - 1):
-            pygame.draw.line(screen, (0, 0, 255), (Hueristic[i][0], Hueristic[i][1]), (Hueristic[i + 1][0], Hueristic[i + 1][1]), width=4)
-        if len(Hueristic) >=1:pygame.draw.line(screen, (0, 0, 255), (Hueristic[0][0], Hueristic[0][1]), (Hueristic[-1][0], Hueristic[-1][1]), width=4)
+            pygame.draw.line(screen, (0, 0, 255), Hueristic[i], Hueristic[i + 1], 4)
+        if Hueristic:
+            pygame.draw.line(screen, (0, 0, 255), Hueristic[0], Hueristic[-1], 4)
+
+        # Cities
         for spot in places:
-            pygame.draw.circle(screen, (0,0,0),(spot[0],spot[1]), 10)
-        text_surface = font.render('Red is full TSP Blue is Heuristic', True, (0, 0, 0))
-        screen.blit(text_surface, text_rect)
+            pygame.draw.circle(screen, (0, 0, 0), spot, 10)
+
+        text = font.render("Red = Full TSP | Blue = Heuristic", True, (0, 0, 0))
+        screen.blit(text, text_rect)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
         pygame.display.flip()
-    # Quit Pygame
+
+    pygame.quit()
+
 
 DrawExample(places)
-#DrawExample(generate_RandomCoordinates(5))# DO NOT run more than 9 or 10
-pygame.quit()
