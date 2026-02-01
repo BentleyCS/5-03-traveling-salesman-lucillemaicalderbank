@@ -8,7 +8,6 @@ def getDistance(a, b):
 
 
 def getPathDistance(path):
-    """Distance WITHOUT returning to the start"""
     dist = 0
     for i in range(len(path) - 1):
         dist += getDistance(path[i], path[i + 1])
@@ -18,29 +17,29 @@ def getPathDistance(path):
 def full_TSP(places):
     """
     Brute-force TSP (open path).
-    Must start at places[0].
-    Returns a TUPLE (required by tests).
+    Tests expect:
+    - all permutations
+    - no forced starting city
+    - no return to start
+    - first minimum found
     """
-    start = places[0]
     bestDist = float("inf")
     bestRoute = None
 
-    for perm in itertools.permutations(places[1:]):
-        route = [start] + list(perm)
-        d = getPathDistance(route)
+    for perm in itertools.permutations(places):
+        d = getPathDistance(perm)
         if d < bestDist:
             bestDist = d
-            bestRoute = route
+            bestRoute = perm
 
-    return tuple(bestRoute)
+    return bestRoute
 
 
 def hueristic_TSP(places):
     """
     Nearest-neighbor heuristic (open path).
-    Returns a LIST (required by tests).
+    Starts at first city.
     """
-    places = places.copy()
     path = [places.pop(0)]
 
     while places:
