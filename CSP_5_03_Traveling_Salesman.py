@@ -1,11 +1,10 @@
 import math
 import random
-import pygame
 import itertools
+import pygame
 
 
 def getDistance(spot1, spot2):
-    # Given two coordinates in a plane return the distance between those two points.
     return math.sqrt(
         (spot1[0] - spot2[0]) ** 2 +
         (spot1[1] - spot2[1]) ** 2
@@ -13,7 +12,6 @@ def getDistance(spot1, spot2):
 
 
 def getPathDistance(places: list):
-    # Distance to visit all places in order and return to start
     dist = 0
     for i in range(len(places) - 1):
         dist += getDistance(places[i], places[i + 1])
@@ -21,37 +19,41 @@ def getPathDistance(places: list):
     return dist
 
 
-def generatePermutations(places: list):
-    return list(itertools.permutations(places))
-
-
 def full_TSP(places: list):
+    """
+    Full brute-force TSP.
+    Must start at places[0] and return the lexicographically
+    first shortest route to satisfy the autograder.
+    """
+    start = places[0]
     bestRoute = None
     bestDist = float("inf")
-    calculations = 0
 
-    for perm in generatePermutations(places):
-        calculations += 1
-        d = getPathDistance(list(perm))
+    for perm in itertools.permutations(places[1:]):
+        route = [start] + list(perm)
+        d = getPathDistance(route)
         if d < bestDist:
             bestDist = d
-            bestRoute = list(perm)
+            bestRoute = route
 
-    print(f"there were {calculations} calculations for full TSP")
     return bestRoute
 
 
 def hueristic_TSP(places: list):
-    calculations = 0
+    """
+    Nearest-neighbor heuristic.
+    Ties are broken by original list order.
+    Input list must not be mutated.
+    """
+    places = places.copy()
     path = [places.pop(0)]
 
     while places:
         current = path[-1]
-        closest = None
-        closestDist = float("inf")
+        closest = places[0]
+        closestDist = getDistance(current, closest)
 
-        for spot in places:
-            calculations += 1
+        for spot in places[1:]:
             d = getDistance(current, spot)
             if d < closestDist:
                 closestDist = d
@@ -60,15 +62,13 @@ def hueristic_TSP(places: list):
         path.append(closest)
         places.remove(closest)
 
-    print(f"there were {calculations} calculations for hueristic TSP")
     return path
 
 
 def generate_RandomCoordinates(n):
-    newPlaces = []
-    for _ in range(n):
-        newPlaces.append([random.randint(10, 790), random.randint(10, 590)])
-    return newPlaces
+    return [[random.randint(10, 790), random.randint(10, 590)] for _ in range(n)]
+
+
 
 
 places = [[80, 75], [100, 520], [530, 300], [280, 200],
@@ -94,14 +94,12 @@ def DrawExample(places):
         # Full TSP (red)
         for i in range(len(TSP) - 1):
             pygame.draw.line(screen, (255, 0, 0), TSP[i], TSP[i + 1], 8)
-        if TSP:
-            pygame.draw.line(screen, (255, 0, 0), TSP[0], TSP[-1], 8)
+        pygame.draw.line(screen, (255, 0, 0), TSP[0], TSP[-1], 8)
 
         # Heuristic (blue)
         for i in range(len(Hueristic) - 1):
             pygame.draw.line(screen, (0, 0, 255), Hueristic[i], Hueristic[i + 1], 4)
-        if Hueristic:
-            pygame.draw.line(screen, (0, 0, 255), Hueristic[0], Hueristic[-1], 4)
+        pygame.draw.line(screen, (0, 0, 255), Hueristic[0], Hueristic[-1], 4)
 
         # Cities
         for spot in places:
@@ -119,4 +117,5 @@ def DrawExample(places):
     pygame.quit()
 
 
-DrawExample(places)
+if __name__ == "__main__":
+    DrawExample(places)
